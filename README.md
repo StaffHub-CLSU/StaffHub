@@ -2,7 +2,7 @@
 
 A complete Employee Management System built with **PHP 8.1+ (OOP MVC) + MySQL (PDO) + AJAX + Bootstrap 5**.
 
-## ✨ Features
+## Features
 
 - **Employee Management (CRUD)** — full employee records with linked login accounts, profile pictures, and soft activate/deactivate.
 - **Smart Timekeeping** — Clock In / Clock Out with automatic hour computation, duplicate-session prevention, incomplete-record detection, and searchable/filterable attendance history.
@@ -44,7 +44,7 @@ StaffHub/
 └── README.md
 ```
 
-## 🚀 Setup
+## Setup
 
 1. **Create the database.** Import `database.sql` (and optionally `seed_data.sql`) into MySQL:
    ```bash
@@ -78,7 +78,7 @@ StaffHub/
    ```
    Without Composer, `bootstrap.php` falls back to a built-in PSR-4 autoloader.
 
-## 🔑 Demo Accounts
+## Demo Accounts
 
 | Role       | Username    | Password      |
 |------------|-------------|---------------|
@@ -88,7 +88,7 @@ StaffHub/
 
 **Change these credentials (or delete the seed accounts) before using this system beyond a local demo.**
 
-## 🧱 Architecture (OOP MVC)
+## Architecture (OOP MVC)
 
 - **Front controller + router** — `public/index.php` boots `bootstrap.php`, which builds the DI `Container` and `Router` (route table in `src/Route/routes.php`). `Application::run()` does match → middleware → controller → response.
 - **DI container** — `Container` supports shared `set()` bindings (interfaces → concrete classes) plus reflection-based constructor autowiring for everything else.
@@ -99,7 +99,7 @@ StaffHub/
 - **Views** — plain PHP templates under `views/`, composed by `Controller::render()` → `layouts/shell.php` → header + content + footer.
 - **JSON API** — `/api/employees`, `/api/attendance`, `/api/payroll`, `/api/departments`, `/api/search` keep the same `?action=` contract the front-end JS already uses.
 
-## 🔒 Security
+## Security
 
 - All database access goes through PDO prepared statements (emulation off).
 - Passwords are hashed with `password_hash()` / verified with `password_verify()`.
