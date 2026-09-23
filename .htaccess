@@ -1,0 +1,11 @@
+# Deny direct HTTP access to application source folders when the
+# document root is the project folder (not public/).
+# public/.htaccess handles routing when public/ is the docroot.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(src|views|config|bootstrap\.php|composer\.(json|lock)) - [F,L]
+</IfModule>
+
+<FilesMatch "\.(sql|log|md)$">
+    Require all denied
+</FilesMatch>

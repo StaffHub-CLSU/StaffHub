@@ -1,0 +1,16 @@
+# StaffHub front controller + static assets (when this folder is the document root).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Serve existing files/directories as-is (assets, uploads, favicon, …).
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Everything else goes through the front controller.
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Deny access to dotfiles (.htaccess, .git, etc.).
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>

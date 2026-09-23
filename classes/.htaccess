@@ -1,3 +1,0 @@
-# Deny all direct web access to this folder — files here are only
-# ever loaded via PHP require/include, never requested directly.
-Require all denied
