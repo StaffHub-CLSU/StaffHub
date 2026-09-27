@@ -1,7 +1,8 @@
 <?php
-
+use App\Http\Controllers\{AdminController,ApiController,AuthenticatedSessionController,EmployeePortalController};
 use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/',fn()=>auth()->check()?redirect(auth()->user()->isAdmin()?'/admin':'/employee'):redirect('/login'));
+Route::middleware('guest')->group(function(){Route::get('/login',[AuthenticatedSessionController::class,'create'])->name('login');Route::post('/login',[AuthenticatedSessionController::class,'store'])->middleware('throttle:login');});
+Route::post('/logout',[AuthenticatedSessionController::class,'destroy'])->middleware('auth')->name('logout');Route::get('/logout',fn()=>redirect('/login'));
+Route::middleware(['auth','role:admin'])->group(function(){Route::get('/admin',[AdminController::class,'dashboard']);Route::get('/admin/employees',[AdminController::class,'employees']);Route::get('/admin/departments',[AdminController::class,'organization']);Route::get('/admin/attendance',[AdminController::class,'attendance']);Route::get('/admin/payroll',[AdminController::class,'payroll']);Route::get('/reports/{type}',[AdminController::class,'report'])->whereIn('type',['attendance','payroll','employees']);Route::post('/api/attendance/{attendance}/verify',[ApiController::class,'verify']);Route::post('/api/payroll',[ApiController::class,'payroll']);});
+Route::middleware(['auth','role:employee'])->group(function(){Route::get('/employee',[EmployeePortalController::class,'dashboard']);Route::get('/employee/attendance',[EmployeePortalController::class,'attendance']);Route::get('/employee/payroll',[EmployeePortalController::class,'payroll']);Route::get('/employee/profile',[EmployeePortalController::class,'profile']);Route::post('/api/attendance/{action}',[ApiController::class,'clock'])->whereIn('action',['in','out']);});

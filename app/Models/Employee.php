@@ -1,0 +1,6 @@
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+class Employee extends Model { protected $primaryKey='employee_id'; protected $fillable=['employee_code','user_id','department_id','position_id','first_name','last_name','middle_name','gender','birthdate','email','contact_number','address','employment_status','basic_hourly_rate','date_hired','profile_picture','is_active']; protected $appends=['full_name']; protected function casts(): array { return ['birthdate'=>'date','date_hired'=>'date','basic_hourly_rate'=>'decimal:2','is_active'=>'boolean']; } public function getFullNameAttribute(): string { return trim("{$this->first_name} {$this->last_name}"); } public function user(): BelongsTo { return $this->belongsTo(User::class,'user_id'); } public function department(): BelongsTo { return $this->belongsTo(Department::class,'department_id'); } public function position(): BelongsTo { return $this->belongsTo(Position::class,'position_id'); } public function attendances(): HasMany { return $this->hasMany(Attendance::class,'employee_id'); } public function payrolls(): HasMany { return $this->hasMany(Payroll::class,'employee_id'); } }

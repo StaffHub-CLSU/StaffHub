@@ -1,0 +1,7 @@
+<?php
+namespace App\Http\Controllers;
+use App\Models\{Attendance,Payroll};
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+class EmployeePortalController extends Controller { private function employee(Request $request) { return $request->user()->employee()->with(['department','position'])->firstOrFail(); } public function dashboard(Request $request): Response { $employee=$this->employee($request); return Inertia::render('Employee/Dashboard',['employee'=>$employee,'today'=>Attendance::where('employee_id',$employee->employee_id)->whereDate('attendance_date',today())->first(),'history'=>Attendance::where('employee_id',$employee->employee_id)->latest('attendance_date')->limit(10)->get(),'lastPayroll'=>Payroll::where('employee_id',$employee->employee_id)->latest('processed_date')->first()]); } public function attendance(Request $request): Response { $employee=$this->employee($request); return Inertia::render('Employee/Attendance',['attendance'=>Attendance::where('employee_id',$employee->employee_id)->latest('attendance_date')->paginate(12)]); } public function payroll(Request $request): Response { $employee=$this->employee($request); return Inertia::render('Employee/Payroll',['payrolls'=>Payroll::where('employee_id',$employee->employee_id)->latest('payroll_period_start')->paginate(24)]); } public function profile(Request $request): Response { return Inertia::render('Employee/Profile',['employee'=>$this->employee($request)]); } }
