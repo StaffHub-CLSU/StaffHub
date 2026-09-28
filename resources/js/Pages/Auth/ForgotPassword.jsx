@@ -1,0 +1,1 @@
+import { Auth } from '../../Components/Pages'; export default function ForgotPassword() { return <Auth kind="forgot" />; }

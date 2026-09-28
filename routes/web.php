@@ -1,8 +1,41 @@
 <?php
-use App\Http\Controllers\{AdminController,ApiController,AuthenticatedSessionController,EmployeePortalController};
+
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeePortalController;
+use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\PayrollController;
 use Illuminate\Support\Facades\Route;
-Route::get('/',fn()=>auth()->check()?redirect(auth()->user()->isAdmin()?'/admin':'/employee'):redirect('/login'));
-Route::middleware('guest')->group(function(){Route::get('/login',[AuthenticatedSessionController::class,'create'])->name('login');Route::post('/login',[AuthenticatedSessionController::class,'store'])->middleware('throttle:login');});
-Route::post('/logout',[AuthenticatedSessionController::class,'destroy'])->middleware('auth')->name('logout');Route::get('/logout',fn()=>redirect('/login'));
-Route::middleware(['auth','role:admin'])->group(function(){Route::get('/admin',[AdminController::class,'dashboard']);Route::get('/admin/employees',[AdminController::class,'employees']);Route::get('/admin/departments',[AdminController::class,'organization']);Route::get('/admin/attendance',[AdminController::class,'attendance']);Route::get('/admin/payroll',[AdminController::class,'payroll']);Route::get('/reports/{type}',[AdminController::class,'report'])->whereIn('type',['attendance','payroll','employees']);Route::post('/api/attendance/{attendance}/verify',[ApiController::class,'verify']);Route::post('/api/payroll',[ApiController::class,'payroll']);});
-Route::middleware(['auth','role:employee'])->group(function(){Route::get('/employee',[EmployeePortalController::class,'dashboard']);Route::get('/employee/attendance',[EmployeePortalController::class,'attendance']);Route::get('/employee/payroll',[EmployeePortalController::class,'payroll']);Route::get('/employee/profile',[EmployeePortalController::class,'profile']);Route::post('/api/attendance/{action}',[ApiController::class,'clock'])->whereIn('action',['in','out']);});
+
+Route::get('/', fn () => auth()->check() ? to_route('dashboard') : to_route('login'))->name('home');
+Route::get('/dashboard', DashboardController::class)->middleware('auth')->name('dashboard');
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function (): void {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    Route::resource('employees', EmployeeController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::get('organization', [OrganizationController::class, 'index'])->name('organization.index');
+    Route::post('departments', [OrganizationController::class, 'storeDepartment'])->name('departments.store');
+    Route::put('departments/{department}', [OrganizationController::class, 'updateDepartment'])->name('departments.update');
+    Route::delete('departments/{department}', [OrganizationController::class, 'destroyDepartment'])->name('departments.destroy');
+    Route::post('positions', [OrganizationController::class, 'storePosition'])->name('positions.store');
+    Route::put('positions/{position}', [OrganizationController::class, 'updatePosition'])->name('positions.update');
+    Route::delete('positions/{position}', [OrganizationController::class, 'destroyPosition'])->name('positions.destroy');
+
+    Route::resource('attendance', AttendanceController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::post('attendance/{attendance}/verify', [AttendanceController::class, 'verify'])->name('attendance.verify');
+    Route::resource('payroll', PayrollController::class)->only(['index', 'store', 'destroy']);
+
+    Route::get('reports/{type}', [AdminController::class, 'report'])->whereIn('type', ['attendance', 'payroll', 'employees'])->name('reports.show');
+});
+
+Route::prefix('employee')->name('employee.')->middleware(['auth', 'role:Employee'])->group(function (): void {
+    Route::get('/', [EmployeePortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('attendance', [EmployeePortalController::class, 'attendance'])->name('attendance.index');
+    Route::post('attendance/{action}', [EmployeePortalController::class, 'clock'])->whereIn('action', ['in', 'out'])->name('attendance.clock');
+    Route::get('payroll', [EmployeePortalController::class, 'payroll'])->name('payroll.index');
+    Route::get('profile', [EmployeePortalController::class, 'profile'])->name('profile.show');
+    Route::put('profile', [EmployeePortalController::class, 'updateProfile'])->name('profile.update');
+});

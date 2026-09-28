@@ -2,28 +2,35 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreEmployeeRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()?->can('employees.manage') ?? false;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'employee_code' => ['required', 'string', 'max:50', Rule::unique('employees')],
+            'username' => ['required', 'string', 'max:50', Rule::unique('users')],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users'), Rule::unique('employees')],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'department_id' => ['nullable', 'integer', 'exists:departments,department_id'],
+            'position_id' => ['nullable', 'integer', 'exists:positions,position_id'],
+            'gender' => ['required', 'string', 'max:20'],
+            'birthdate' => ['required', 'date', 'before:today'],
+            'contact_number' => ['required', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'employment_status' => ['required', Rule::in(['Full-Time', 'Part-Time', 'Contractual'])],
+            'basic_hourly_rate' => ['required', 'numeric', 'min:0'],
+            'date_hired' => ['required', 'date'],
         ];
     }
 }

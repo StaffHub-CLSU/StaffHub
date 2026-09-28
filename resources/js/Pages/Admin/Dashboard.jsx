@@ -1,0 +1,1 @@
+import { Dashboard } from '../../Components/Pages'; export default Dashboard;

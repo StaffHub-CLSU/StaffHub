@@ -4,63 +4,36 @@ namespace App\Policies;
 
 use App\Models\Attendance;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class AttendancePolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->can('attendance.view') || $user->can('own-attendance.manage');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Attendance $attendance): bool
     {
-        return false;
+        return $user->can('attendance.view') || $attendance->employee_id === $user->employee?->employee_id;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return false;
+        return $user->can('attendance.manage') || $user->can('own-attendance.manage');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Attendance $attendance): bool
     {
-        return false;
+        return $user->can('attendance.manage') || $attendance->employee_id === $user->employee?->employee_id;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Attendance $attendance): bool
     {
-        return false;
+        return $user->can('attendance.manage');
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Attendance $attendance): bool
+    public function verify(User $user, Attendance $attendance): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Attendance $attendance): bool
-    {
-        return false;
+        return $user->can('attendance.manage') && $attendance->status === 'Completed';
     }
 }

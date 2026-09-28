@@ -1,0 +1,1 @@
+import { Organization } from '../../Components/Pages'; export default Organization;

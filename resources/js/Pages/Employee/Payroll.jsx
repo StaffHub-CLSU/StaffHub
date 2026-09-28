@@ -1,0 +1,1 @@
+import { Payroll } from '../../Components/Pages'; export default Payroll;

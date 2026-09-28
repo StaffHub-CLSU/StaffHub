@@ -2,28 +2,23 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class OrganizationRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()?->can('organization.manage') ?? false;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $id = $this->route('department')?->department_id;
+
         return [
-            //
+            'department_name' => ['required', 'string', 'max:255', Rule::unique('departments')->ignore($id, 'department_id')],
+            'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

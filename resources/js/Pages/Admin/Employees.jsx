@@ -1,0 +1,1 @@
+import { Employees } from '../../Components/Pages'; export default Employees;

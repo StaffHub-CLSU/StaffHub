@@ -1,0 +1,1 @@
+import { Auth } from '../../Components/Pages'; export default function Register() { return <Auth kind="register" />; }
