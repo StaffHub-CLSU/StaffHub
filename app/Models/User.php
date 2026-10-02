@@ -14,6 +14,10 @@ class User extends Authenticatable
 
     protected $primaryKey = 'user_id';
 
+    protected $attributes = [
+        'is_active' => true,
+    ];
+
     protected $fillable = ['name', 'username', 'email', 'password', 'is_active'];
 
     protected $hidden = ['password', 'remember_token'];

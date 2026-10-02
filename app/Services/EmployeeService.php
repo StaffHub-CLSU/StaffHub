@@ -13,13 +13,25 @@ class EmployeeService
     public function create(array $data): Employee
     {
         return DB::transaction(function () use ($data): Employee {
-            $user = User::create([
-                'name' => trim($data['first_name'].' '.$data['last_name']),
-                'username' => $data['username'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-                'is_active' => true,
-            ]);
+            $user = User::query()->where('username', $data['username'])->first();
+
+            if ($user === null) {
+                $user = User::create([
+                    'name' => trim($data['first_name'].' '.$data['last_name']),
+                    'username' => $data['username'],
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password']),
+                    'is_active' => true,
+                ]);
+            } else {
+                $user->forceFill([
+                    'name' => trim($data['first_name'].' '.$data['last_name']),
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password']),
+                    'is_active' => true,
+                ])->save();
+            }
+
             $user->assignRole('Employee');
 
             return Employee::create(Arr::except($data, ['username', 'password', 'password_confirmation']) + ['user_id' => $user->user_id]);

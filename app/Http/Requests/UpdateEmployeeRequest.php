@@ -3,8 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Models\Employee;
+use App\Models\Position;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateEmployeeRequest extends FormRequest
 {
@@ -33,5 +35,20 @@ class UpdateEmployeeRequest extends FormRequest
             'basic_hourly_rate' => ['required', 'numeric', 'min:0'],
             'date_hired' => ['required', 'date'],
         ];
+    }
+
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            if ($validator->errors()->hasAny(['department_id', 'position_id'])) {
+                return;
+            }
+
+            $position = Position::find($this->integer('position_id'));
+
+            if ($position !== null && (int) $position->department_id !== $this->integer('department_id')) {
+                $validator->errors()->add('position_id', 'The selected position must belong to the selected department.');
+            }
+        }];
     }
 }

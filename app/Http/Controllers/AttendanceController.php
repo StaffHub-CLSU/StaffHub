@@ -32,7 +32,15 @@ class AttendanceController extends Controller
     public function update(AttendanceRequest $request, Attendance $attendance): RedirectResponse
     {
         $this->authorize('update', $attendance);
-        $attendance->update($request->validated());
+        $data = $request->validated();
+        $timeIn = isset($data['time_in']) ? now()->parse($data['time_in']) : $attendance->time_in;
+        $timeOut = isset($data['time_out']) ? now()->parse($data['time_out']) : $attendance->time_out;
+
+        $data['total_hours'] = $timeIn !== null && $timeOut !== null
+            ? round($timeIn->diffInSeconds($timeOut) / 3600, 2)
+            : 0;
+
+        $attendance->update($data);
 
         return to_route('admin.attendance.index')->with('success', 'Attendance updated.');
     }

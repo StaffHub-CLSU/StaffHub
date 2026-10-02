@@ -14,6 +14,22 @@ class PayrollService
     public function calculate(Employee $employee, array $data, User $processor): Payroll
     {
         return DB::transaction(function () use ($employee, $data, $processor): Payroll {
+            $hasOverlappingPayroll = Payroll::query()
+                ->whereBelongsTo($employee)
+                ->where('payroll_period_start', '<=', $data['payroll_period_end'])
+                ->where('payroll_period_end', '>=', $data['payroll_period_start'])
+                ->where(function ($query) use ($data): void {
+                    $query->where('payroll_period_start', '!=', $data['payroll_period_start'])
+                        ->orWhere('payroll_period_end', '!=', $data['payroll_period_end']);
+                })
+                ->exists();
+
+            if ($hasOverlappingPayroll) {
+                throw ValidationException::withMessages([
+                    'payroll_period_start' => 'The selected period overlaps an existing payroll.',
+                ]);
+            }
+
             $hours = (float) Attendance::query()->whereBelongsTo($employee)->where('status', 'Verified')->whereBetween('attendance_date', [$data['payroll_period_start'], $data['payroll_period_end']])->sum('total_hours');
 
             if ($hours <= 0) {

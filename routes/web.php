@@ -10,9 +10,9 @@ use App\Http\Controllers\PayrollController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => auth()->check() ? to_route('dashboard') : to_route('login'))->name('home');
-Route::get('/dashboard', DashboardController::class)->middleware('auth')->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware('active-auth')->name('dashboard');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function (): void {
+Route::prefix('admin')->name('admin.')->middleware(['active-auth', 'role:Admin'])->group(function (): void {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
     Route::resource('employees', EmployeeController::class)->only(['index', 'store', 'update', 'destroy']);
@@ -31,7 +31,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
     Route::get('reports/{type}', [AdminController::class, 'report'])->whereIn('type', ['attendance', 'payroll', 'employees'])->name('reports.show');
 });
 
-Route::prefix('employee')->name('employee.')->middleware(['auth', 'role:Employee'])->group(function (): void {
+Route::prefix('employee')->name('employee.')->middleware(['active-auth', 'role:Employee'])->group(function (): void {
     Route::get('/', [EmployeePortalController::class, 'dashboard'])->name('dashboard');
     Route::get('attendance', [EmployeePortalController::class, 'attendance'])->name('attendance.index');
     Route::post('attendance/{action}', [EmployeePortalController::class, 'clock'])->whereIn('action', ['in', 'out'])->name('attendance.clock');

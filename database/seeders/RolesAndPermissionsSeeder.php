@@ -21,7 +21,12 @@ class RolesAndPermissionsSeeder extends Seeder
         $employee->syncPermissions(['profile.manage', 'own-attendance.manage', 'own-payroll.view']);
         if (app()->environment(['local', 'testing'])) {
             $user = User::firstOrCreate(['username' => 'admin'], ['name' => 'StaffHub Admin', 'email' => 'admin@staffhub.test', 'password' => 'Password123!', 'is_active' => true]);
-            $user->forceFill(['name' => 'StaffHub Admin', 'is_active' => true])->save();
+            $user->forceFill([
+                'name' => 'StaffHub Admin',
+                'email' => 'admin@staffhub.test',
+                'password' => 'Password123!',
+                'is_active' => true,
+            ])->save();
             $user->syncRoles([$admin]);
         }
     }

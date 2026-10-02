@@ -56,6 +56,27 @@ class EmployeeManagementTest extends TestCase
         $this->assertDatabaseCount('employees', $employeeCount);
     }
 
+    public function test_admin_can_open_every_dashboard_navigation_page(): void
+    {
+        $admin = $this->userWithRole('Admin', [
+            'employees.view',
+            'organization.manage',
+            'attendance.view',
+            'payroll.view',
+            'reports.view',
+        ]);
+
+        foreach ([
+            '/admin/employees',
+            '/admin/organization',
+            '/admin/attendance',
+            '/admin/payroll',
+            '/admin/reports/payroll',
+        ] as $path) {
+            $this->actingAs($admin)->get($path)->assertOk();
+        }
+    }
+
     private function userWithRole(string $roleName, array $permissions): User
     {
         $role = Role::findOrCreate($roleName, 'web');
