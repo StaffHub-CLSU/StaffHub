@@ -52,7 +52,7 @@ class OrganizationController extends Controller
 
     public function updatePosition(PositionRequest $request, Position $position): RedirectResponse
     {
-        $this->authorize('update', Department::class);
+        $this->authorize('update', $position);
         $position->update($request->validated());
 
         return to_route('admin.organization.index')->with('success', 'Position updated.');
@@ -60,7 +60,7 @@ class OrganizationController extends Controller
 
     public function destroyPosition(Request $request, Position $position): RedirectResponse
     {
-        $this->authorize('delete', Department::class);
+        $this->authorize('delete', $position);
         $position->delete();
 
         return to_route('admin.organization.index')->with('success', 'Position deleted.');

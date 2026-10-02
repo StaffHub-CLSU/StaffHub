@@ -7,21 +7,13 @@ use App\Models\Attendance;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Payroll;
-use App\Models\Position;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AdminController extends Controller
 {
-    private function shared(): array
-    {
-        return [
-            'departments' => Department::orderBy('department_name')->get(),
-            'positions' => Position::orderBy('position_name')->get(),
-        ];
-    }
-
     public function dashboard(): Response
     {
         $totalEmployees = Employee::query()->where('is_active', true)->count();
@@ -88,48 +80,16 @@ class AdminController extends Controller
         ]);
     }
 
-    public function employees(Request $request): Response
+    public function report(Request $request, string $type): Response
     {
-        return Inertia::render('Admin/Employees', $this->shared() + [
-            'employees' => Employee::with(['department', 'position', 'user'])
-                ->when($request->search, fn ($query, $value) => $query->where(fn ($query) => $query
-                    ->where('first_name', 'like', "%{$value}%")
-                    ->orWhere('last_name', 'like', "%{$value}%")
-                    ->orWhere('employee_code', 'like', "%{$value}%")))
-                ->latest('employee_id')
-                ->paginate(8)
-                ->withQueryString(),
-        ]);
-    }
+        Gate::forUser($request->user())->authorize('reports.view');
 
-    public function organization(): Response
-    {
-        return Inertia::render('Admin/Organization', $this->shared());
-    }
-
-    public function attendance(Request $request): Response
-    {
-        return Inertia::render('Admin/Attendance', $this->shared() + [
-            'attendance' => Attendance::with('employee.department')->latest('attendance_date')->paginate(10)->withQueryString(),
-        ]);
-    }
-
-    public function payroll(Request $request): Response
-    {
-        return Inertia::render('Admin/Payroll', $this->shared() + [
-            'employees' => Employee::active()->orderBy('last_name')->get(),
-            'payrolls' => Payroll::with('employee.department')->latest('processed_date')->paginate(10),
-        ]);
-    }
-
-    public function report(string $type): Response
-    {
         $rows = match ($type) {
             'attendance' => Attendance::with('employee.department')->latest('attendance_date')->limit(1000)->get(),
             'payroll' => Payroll::with('employee.department')->latest('processed_date')->limit(1000)->get(),
             default => Employee::with(['department', 'position'])->latest('employee_id')->limit(1000)->get(),
         };
 
-        return Inertia::render('Reports/Index', ['type' => $type, 'rows' => $rows] + $this->shared());
+        return Inertia::render('Reports/Index', ['type' => $type, 'rows' => $rows]);
     }
 }
