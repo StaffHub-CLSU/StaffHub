@@ -25,12 +25,13 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'username' => fake()->unique()->userName(),
-            'email' => fake()->unique()->safeEmail(),
+            'name'              => fake()->name(),
+            'username'          => fake()->unique()->userName(),
+            'email'             => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'password'          => static::$password ??= Hash::make('password'),
+            'remember_token'    => Str::random(10),
+            'is_active'         => true,
         ];
     }
 
@@ -42,5 +43,26 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    /**
+     * Inactive / disabled user account.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_active' => false,
+        ]);
+    }
+
+    /**
+     * Assign the 'Admin' Spatie role to this user after creation.
+     * Roles must already exist (run RolesAndPermissionsSeeder first).
+     */
+    public function admin(): static
+    {
+        return $this->afterCreating(function (\App\Models\User $user): void {
+            $user->assignRole('Admin');
+        });
     }
 }
