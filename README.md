@@ -1,58 +1,281 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# StaffHub
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel-based HR and payroll management system for Philippine companies and institutions.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Requirements
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Requirement | Version |
+|-------------|---------|
+| PHP | ≥ 8.3 |
+| Composer | ≥ 2.x |
+| Node.js | ≥ 18.x (LTS) |
+| npm | ≥ 9.x |
+| MySQL | ≥ 8.0 (or MariaDB ≥ 10.6) |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Local Setup
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Clone the repository
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/StaffHub-CLSU/StaffHub.git
+cd StaffHub
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Install PHP dependencies
 
-## Contributing
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Install Node dependencies and build assets
 
-## Code of Conduct
+```bash
+npm install
+npm run build
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+> **During development** run `npm run dev` instead of `npm run build` to start
+> the Vite dev server with hot-module replacement.
 
-## Security Vulnerabilities
+### 4. Copy the environment file
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+cp .env.example .env
+```
+
+### 5. Generate the application key
+
+```bash
+php artisan key:generate
+```
+
+### 6. Configure the database
+
+Open `.env` and set your MySQL credentials:
+
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=staffhub_db   # create this database first
+DB_USERNAME=root
+DB_PASSWORD=               # your MySQL password
+```
+
+Create the database if it does not exist yet:
+
+```sql
+CREATE DATABASE staffhub_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 7. Run migrations and seed demo data
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+This drops and recreates all tables, then runs the seeders in order:
+
+1. **`RolesAndPermissionsSeeder`** — creates the `Admin` and `Employee` Spatie roles, all permissions, and the `admin@staffhub.test` user account.
+2. **`DemoDataSeeder`** *(local / testing only)* — creates departments, positions, sample employees, attendance history, and payroll records (see [Demo Data](#demo-data) below).
+
+### 8. Run the application
+
+```bash
+composer run dev
+```
+
+This starts the Laravel development server via `php artisan dev`. The app will
+be available at the URL set in `APP_URL` (default: `http://localhost/StaffHub/public`
+when served through a local web server such as Laragon or XAMPP).
+
+If you are running `php artisan serve` directly, the app will be at
+`http://localhost:8000`.
+
+---
+
+## Demo Data
+
+After running `php artisan migrate:fresh --seed` in a `local` environment the
+database will contain the following demonstration dataset:
+
+| Category | Count | Detail |
+|----------|-------|--------|
+| Departments | 5 | Human Resources, Finance and Accounting, Information Technology, Operations, Administration |
+| Positions | 10 | 2 per department — one managerial title + one rank-and-file title |
+| Admin employee | 1 | Linked to `admin@staffhub.test`; placed in Administration |
+| Managers | 5 | One per department (`manager()` factory state — higher pay, Employee role) |
+| Regular employees | 14 | 9 Full-Time active, 3 On Leave, 2 Resigned/inactive |
+| Attendance records | ~140 | 10 working days per active employee (7 Present, 1 Late, 1 Half-Day, 1 Absent) |
+| Payroll records | ~19 | One record per active employee for the last completed semi-monthly period |
+
+### Demo login credentials
+
+| Field | Value |
+|-------|-------|
+| Email | `admin@staffhub.test` |
+| Password | `Password123!` |
+
+---
+
+## Factories & Seeders Reference
+
+> Intended for developers adding tests or new seed scripts.
+
+### Factories (`database/factories/`)
+
+#### `UserFactory`
+
+Default: a verified, active user with a random username and email.
+
+| State | Effect |
+|-------|--------|
+| `unverified()` | Sets `email_verified_at = null` |
+| `inactive()` | Sets `is_active = false` |
+| `admin()` | Assigns the `Admin` Spatie role after creation *(roles must exist)* |
+
+#### `DepartmentFactory`
+
+Default: picks one of 15 preset Philippine-company department names with an optional description.
+
+| State | Effect |
+|-------|--------|
+| `withDescription()` | Forces a non-null description |
+
+> **Note:** `department_name` has a database-level `UNIQUE` constraint. When
+> seeding many departments use `firstOrCreate` with explicit names (as
+> `DemoDataSeeder` does) rather than relying on the factory's random pick.
+
+#### `PositionFactory`
+
+Default: a random job title linked to a new `Department`.
+
+| State | Effect |
+|-------|--------|
+| `managerial()` | Picks from managerial titles (e.g. `HR Manager`, `IT Manager`) |
+| `supervisory()` | Picks from supervisory titles (e.g. `Team Leader`, `Section Head`) |
+| `rank()` | Picks from rank-and-file titles (e.g. `Accounting Clerk`, `HR Officer`) |
+
+> The unique constraint is `(position_name, department_id)`, so the same title
+> may exist across different departments.
+
+#### `EmployeeFactory`
+
+Default: a Full-Time, active employee with Filipino-style name, PH mobile
+number, and an address from Nueva Ecija / Metro Manila. `department_id` and
+`position_id` are `null` by default — use a state or helper to wire them.
+
+**Employment-status states**
+
+| State | `employment_status` | `is_active` |
+|-------|---------------------|-------------|
+| `active()` | `Full-Time` | `true` |
+| `inactive()` | `Resigned` | `false` |
+| `onLeave()` | `On Leave` | `true` |
+| `partTime()` | `Part-Time` | `true` |
+| `contractual()` | `Contractual` | `true` |
+
+**Role states** *(require roles to be seeded first)*
+
+| State | Effect |
+|-------|--------|
+| `admin()` | Assigns `Admin` role to the linked `User` after creation |
+| `manager()` | Sets a higher hourly rate (PHP 250–500/hr); assigns `Employee` role |
+
+**Relationship helpers**
+
+```php
+// Wire to an existing department (and optionally a position)
+Employee::factory()->forDepartment($dept, $position)->create();
+
+// Auto-create a department + position and wire automatically
+Employee::factory()->withDepartment()->create();
+```
+
+#### `AttendanceFactory`
+
+Default: a `Present` record for today (8 AM–5 PM, 9 hours).
+
+| State | `status` | `time_in` | `time_out` |
+|-------|----------|-----------|------------|
+| `present()` | `Present` | 08:00 | 17:00 |
+| `absent()` | `Absent` | `null` | `null` |
+| `late()` | `Late` | 09:01–10:59 | 17:00 |
+| `halfDay()` | `Half-Day` | 08:00 | 12:00 |
+| `incomplete()` | `Incomplete` | 08:00 | `null` |
+
+Date helper:
+
+```php
+Attendance::factory()->forDate('2026-09-15')->present()->create([...]);
+```
+
+#### `PayrollFactory`
+
+Default: a semi-monthly record for the most recently completed pay period.
+`gross_salary = verified_hours × hourly_rate`.
+
+| State | Effect |
+|-------|--------|
+| `firstHalf()` | Period = 1st–15th of the current month |
+| `secondHalf()` | Period = 16th–end of the current month |
+| `withBonus()` | Adds PHP 500–5,000 bonus; recomputes `net_salary` |
+| `withDeductions()` | Applies SSS (4.5 %), PhilHealth (2.5 %), Pag-IBIG (PHP 100); recomputes `net_salary` |
+
+---
+
+### Seeders (`database/seeders/`)
+
+| Seeder | Runs in | Purpose |
+|--------|---------|---------|
+| `RolesAndPermissionsSeeder` | all environments | Creates `Admin` / `Employee` roles, all permissions, and `admin@staffhub.test` |
+| `DemoDataSeeder` | `local` and `testing` only | Populates departments, positions, employees, attendance, and payroll using the factories above |
+
+**Seeding order is enforced in `DatabaseSeeder`:**
+
+```
+RolesAndPermissionsSeeder
+└─ DemoDataSeeder (local/testing only)
+     ├─ departments & positions
+     ├─ admin employee record
+     ├─ managers (one per department)
+     ├─ regular employees (9 active / 3 on leave / 2 resigned)
+     ├─ attendance (10 working days per active employee)
+     └─ payroll (last completed semi-monthly period, with deductions)
+```
+
+---
+
+## Running Tests
+
+```bash
+php artisan test
+```
+
+Or directly via PHPUnit:
+
+```bash
+vendor/bin/phpunit
+```
+
+---
+
+## Code Style
+
+PHP files are formatted with [Laravel Pint](https://laravel.com/docs/pint):
+
+```bash
+vendor/bin/pint
+```
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The StaffHub application is open-sourced software licensed under the
+[MIT license](https://opensource.org/licenses/MIT).
+
