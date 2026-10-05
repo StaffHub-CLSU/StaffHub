@@ -41,6 +41,12 @@ class PayrollService
             $bonuses = (float) ($data['bonuses'] ?? 0);
             $deductions = (float) ($data['deductions'] ?? 0);
 
+            if ($deductions > $gross + $bonuses) {
+                throw ValidationException::withMessages([
+                    'deductions' => 'Deductions cannot exceed the gross salary plus bonuses.',
+                ]);
+            }
+
             return Payroll::updateOrCreate(
                 ['employee_id' => $employee->employee_id, 'payroll_period_start' => $data['payroll_period_start'], 'payroll_period_end' => $data['payroll_period_end']],
                 ['verified_hours' => $hours, 'hourly_rate' => $rate, 'gross_salary' => $gross, 'bonuses' => $bonuses, 'deductions' => $deductions, 'net_salary' => $gross + $bonuses - $deductions, 'processed_by' => $processor->user_id, 'processed_date' => now()]

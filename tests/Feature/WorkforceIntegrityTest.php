@@ -102,6 +102,28 @@ class WorkforceIntegrityTest extends TestCase
         $this->assertSame(1, Payroll::query()->where('employee_id', $employee->employee_id)->count());
     }
 
+    public function test_payroll_deductions_cannot_exceed_gross_salary_plus_bonuses(): void
+    {
+        $admin = $this->administrator();
+        $employee = Employee::factory()->create(['basic_hourly_rate' => 100]);
+        Attendance::create([
+            'employee_id' => $employee->employee_id,
+            'attendance_date' => '2026-09-15',
+            'total_hours' => 8,
+            'status' => 'Verified',
+        ]);
+
+        $this->actingAs($admin)->from('/admin/payroll')->post('/admin/payroll', [
+            'employee_id' => $employee->employee_id,
+            'payroll_period_start' => '2026-09-01',
+            'payroll_period_end' => '2026-09-15',
+            'bonuses' => 0,
+            'deductions' => 900,
+        ])->assertRedirect('/admin/payroll')->assertSessionHasErrors('deductions');
+
+        $this->assertDatabaseMissing('payroll', ['employee_id' => $employee->employee_id]);
+    }
+
     public function test_a_position_must_belong_to_the_selected_employee_department(): void
     {
         $admin = $this->administrator();
