@@ -24,7 +24,7 @@ class AttendancePolicy
 
     public function update(User $user, Attendance $attendance): bool
     {
-        return $user->can('attendance.manage') || $attendance->employee_id === $user->employee?->employee_id;
+        return $user->can('attendance.manage');
     }
 
     public function delete(User $user, Attendance $attendance): bool

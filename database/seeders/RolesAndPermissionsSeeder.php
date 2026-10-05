@@ -11,13 +11,15 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        $permissions = ['employees.view', 'employees.manage', 'organization.manage', 'attendance.view', 'attendance.manage', 'payroll.view', 'payroll.manage', 'reports.view', 'profile.manage', 'own-attendance.manage', 'own-payroll.view'];
+        $permissions = ['employees.view', 'employees.manage', 'organization.view', 'organization.manage', 'attendance.view', 'attendance.manage', 'payroll.view', 'payroll.manage', 'reports.view', 'profile.manage', 'own-attendance.manage', 'own-payroll.view'];
         foreach ($permissions as $name) {
             Permission::findOrCreate($name, 'web');
         }
         $admin = Role::findOrCreate('Admin', 'web');
+        $manager = Role::findOrCreate('Manager', 'web');
         $employee = Role::findOrCreate('Employee', 'web');
         $admin->syncPermissions($permissions);
+        $manager->syncPermissions(['employees.view', 'attendance.view', 'attendance.manage', 'organization.view', 'payroll.view', 'reports.view']);
         $employee->syncPermissions(['profile.manage', 'own-attendance.manage', 'own-payroll.view']);
         if (app()->environment(['local', 'testing'])) {
             $user = User::firstOrCreate(['username' => 'admin'], ['name' => 'StaffHub Admin', 'email' => 'admin@staffhub.test', 'password' => 'Password123!', 'is_active' => true]);

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => auth()->check() ? to_route('dashboard') : to_route('login'))->name('home');
 Route::get('/dashboard', DashboardController::class)->middleware('active-auth')->name('dashboard');
 
-Route::prefix('admin')->name('admin.')->middleware(['active-auth', 'role:Admin'])->group(function (): void {
+Route::prefix('admin')->name('admin.')->middleware(['active-auth', 'role:Admin,Manager'])->group(function (): void {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
     Route::resource('employees', EmployeeController::class)->only(['index', 'store', 'update', 'destroy']);

@@ -8,7 +8,7 @@ class DepartmentPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('organization.manage');
+        return $user->can('organization.view') || $user->can('organization.manage');
     }
 
     public function create(User $user): bool
