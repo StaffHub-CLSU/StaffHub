@@ -19,7 +19,7 @@ class AttendanceRequest extends FormRequest
             'attendance_date' => ['required', 'date'],
             'time_in' => ['nullable', 'date'],
             'time_out' => ['nullable', 'date', 'after:time_in'],
-            'status' => ['required', Rule::in(['Incomplete', 'Completed', 'Verified'])],
+            'status' => ['required', Rule::in(['Incomplete', 'Completed'])],
         ];
     }
 }
