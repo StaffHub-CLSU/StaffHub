@@ -35,3 +35,20 @@ body{font-family:"Instrument Sans",sans-serif}.sh-content{min-height:100vh}.tabl
   .btn:not(.btn-sm){padding-top:13px;padding-bottom:13px}
   .sh-form-submit{width:100%}
 }
+
+@media (max-width:575.98px){
+  .sh-login-wrap{
+    min-height:100svh;
+    align-items:flex-start;
+    overflow-y:auto;
+    padding:72px 16px 24px;
+  }
+  .sh-login-shell{width:100%;border-radius:18px}
+  .sh-login-form-side{padding:28px 20px}
+  .sh-login-theme-toggle{top:12px;right:12px}
+  .sh-content form{min-width:0}
+  .sh-content form .row>*{min-width:0}
+  .sh-content form .sh-form-submit,
+  .sh-content form>[type="submit"]{width:100%;min-height:46px}
+  .sh-field-error{overflow-wrap:anywhere}
+}

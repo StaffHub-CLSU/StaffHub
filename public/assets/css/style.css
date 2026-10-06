@@ -753,6 +753,10 @@ h5.sh-display { font-size: 21px; line-height: 1.2; }
 .sh-badge-incomplete { background: var(--sh-warning-tint); color: var(--sh-warning); }
 .sh-badge-active { background: var(--sh-success-tint); color: var(--sh-success); }
 .sh-badge-inactive { background: var(--sh-secondary-tint); color: var(--sh-secondary); }
+.sh-badge-approved { background: var(--sh-success-tint); color: var(--sh-success); }
+.sh-badge-pending { background: var(--sh-warning-tint); color: var(--sh-warning); }
+.sh-badge-rejected { background: var(--sh-danger-tint); color: var(--sh-danger); }
+.sh-badge-on-leave { background: var(--sh-info-tint); color: var(--sh-info); }
 
 /* =========================================================
    Forms
@@ -1523,6 +1527,18 @@ h5.sh-display { font-size: 21px; line-height: 1.2; }
   margin-bottom: 16px;
 }
 .sh-page-toolbar h1 { margin: 0; }
+.sh-page-toolbar h1,
+.sh-content > h1 {
+  color: var(--sh-text);
+  font-family: var(--sh-font-display);
+  font-size: clamp(1.4rem, 2vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.sh-page-head > div:first-child { min-width: 0; }
+.sh-page-head h1 { overflow-wrap: anywhere; }
 
 /* Data tables sit in a surface that scrolls horizontally. */
 .table-responsive {
@@ -1534,6 +1550,24 @@ h5.sh-display { font-size: 21px; line-height: 1.2; }
 }
 .table-responsive > table { margin-bottom: 0; }
 
+.sh-empty-state {
+  display: grid;
+  min-height: 96px;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  color: var(--sh-text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+.sh-empty-state > i {
+  color: var(--sh-text-tertiary);
+  font-size: 22px;
+}
+.sh-table td > .sh-empty-state { min-height: 112px; }
+
 /* Keep long labels from stretching a stat card past its column. */
 .sh-stat-card > div:last-child { min-width: 0; }
 .sh-stat-label { overflow-wrap: break-word; }
@@ -1544,10 +1578,13 @@ h5.sh-display { font-size: 21px; line-height: 1.2; }
 }
 
 @media (max-width: 575.98px) {
+  .sh-content { padding: 18px 14px 32px; }
+
   .sh-page-toolbar > .btn,
   .sh-page-toolbar > .btn-group { width: 100%; }
 
   .sh-card { padding: 18px; }
+  .sh-card-header-flat { padding: 16px; }
 
   .sh-stat-card { padding: 16px; gap: 12px; }
   .sh-stat-icon { width: 40px; height: 40px; border-radius: 12px; font-size: 15px; }
@@ -1555,6 +1592,9 @@ h5.sh-display { font-size: 21px; line-height: 1.2; }
 
   .sh-punch-card { padding: 22px; }
   .sh-punch-clock { font-size: clamp(30px, 10vw, 44px); }
+  .sh-content .pagination { flex-wrap: wrap; }
+  .sh-form-alerts { min-width: 0; }
+  .sh-form-alerts .alert { overflow-wrap: anywhere; }
 }
 
 /* Print styles */
