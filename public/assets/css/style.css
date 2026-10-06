@@ -753,6 +753,10 @@ h5.sh-display { font-size: 21px; line-height: 1.2; }
 .sh-badge-incomplete { background: var(--sh-warning-tint); color: var(--sh-warning); }
 .sh-badge-active { background: var(--sh-success-tint); color: var(--sh-success); }
 .sh-badge-inactive { background: var(--sh-secondary-tint); color: var(--sh-secondary); }
+.sh-badge-approved { background: var(--sh-success-tint); color: var(--sh-success); }
+.sh-badge-pending { background: var(--sh-warning-tint); color: var(--sh-warning); }
+.sh-badge-rejected { background: var(--sh-danger-tint); color: var(--sh-danger); }
+.sh-badge-on-leave { background: var(--sh-info-tint); color: var(--sh-info); }
 
 /* =========================================================
    Forms
@@ -780,6 +784,28 @@ h5.sh-display { font-size: 21px; line-height: 1.2; }
 .form-control::placeholder { color: var(--sh-text-tertiary); }
 .form-text { font-size: 12px; color: var(--sh-text-secondary); }
 .invalid-feedback { font-size: 12.5px; }
+
+/* Field label, required marker and inline validation message */
+.form-label { font-size: 13px; font-weight: 600; color: var(--sh-text); }
+.sh-field-required { color: var(--sh-danger); font-weight: 700; }
+.sh-field-error { font-size: 12.5px; line-height: 1.4; color: var(--sh-danger); }
+
+/* Success / error summary shown after a submit */
+.sh-form-alerts { display: grid; gap: 10px; margin-bottom: 20px; }
+.sh-form-alerts .alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 0;
+  padding: 13px 15px;
+  font-size: 13.5px;
+}
+.sh-form-alerts .alert > i { flex: 0 0 auto; margin-top: 2px; font-size: 15px; }
+.sh-form-alert-title { display: block; margin-bottom: 4px; font-weight: 600; }
+.sh-form-alert-item { display: block; font-size: 13px; }
+
+/* Primary form action */
+.sh-form-submit { font-weight: 600; }
 
 .form-floating > .form-control, .form-floating > .form-select { padding: 1.35rem 0.9rem 0.45rem; }
 .form-floating > label { color: var(--sh-text-secondary); font-weight: 500; }
@@ -1487,6 +1513,90 @@ h5.sh-display { font-size: 21px; line-height: 1.2; }
   .sh-page-head { margin-bottom: 20px; }
 }
 
+/* =========================================================
+   Responsive refinements
+   ========================================================= */
+
+/* Page toolbar: heading on the left, actions on the right. */
+.sh-page-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 16px;
+}
+.sh-page-toolbar h1 { margin: 0; }
+.sh-page-toolbar h1,
+.sh-content > h1 {
+  color: var(--sh-text);
+  font-family: var(--sh-font-display);
+  font-size: clamp(1.4rem, 2vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.sh-page-head > div:first-child { min-width: 0; }
+.sh-page-head h1 { overflow-wrap: anywhere; }
+
+/* Data tables sit in a surface that scrolls horizontally. */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+  background: var(--sh-surface);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  box-shadow: var(--sh-shadow-sm);
+}
+.table-responsive > table { margin-bottom: 0; }
+
+.sh-empty-state {
+  display: grid;
+  min-height: 96px;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  color: var(--sh-text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+.sh-empty-state > i {
+  color: var(--sh-text-tertiary);
+  font-size: 22px;
+}
+.sh-table td > .sh-empty-state { min-height: 112px; }
+
+/* Keep long labels from stretching a stat card past its column. */
+.sh-stat-card > div:last-child { min-width: 0; }
+.sh-stat-label { overflow-wrap: break-word; }
+
+@media (max-width: 767.98px) {
+  /* Scroll the table sideways instead of squeezing every column. */
+  .table-responsive > table { min-width: 640px; }
+}
+
+@media (max-width: 575.98px) {
+  .sh-content { padding: 18px 14px 32px; }
+
+  .sh-page-toolbar > .btn,
+  .sh-page-toolbar > .btn-group { width: 100%; }
+
+  .sh-card { padding: 18px; }
+  .sh-card-header-flat { padding: 16px; }
+
+  .sh-stat-card { padding: 16px; gap: 12px; }
+  .sh-stat-icon { width: 40px; height: 40px; border-radius: 12px; font-size: 15px; }
+  .sh-stat-value { font-size: 22px; }
+
+  .sh-punch-card { padding: 22px; }
+  .sh-punch-clock { font-size: clamp(30px, 10vw, 44px); }
+  .sh-content .pagination { flex-wrap: wrap; }
+  .sh-form-alerts { min-width: 0; }
+  .sh-form-alerts .alert { overflow-wrap: anywhere; }
+}
+
 /* Print styles */
 @media print {
   .sh-sidebar, .sh-topbar, .no-print, .sh-toast-container { display: none !important; }
@@ -1494,6 +1604,7 @@ h5.sh-display { font-size: 21px; line-height: 1.2; }
   .sh-shell { display: block !important; }
   body { background: #fff !important; }
   .sh-card, .sh-punch-card { box-shadow: none !important; border: 1px solid #ddd !important; border-radius: 8px !important; }
+  .table-responsive { box-shadow: none !important; background: transparent !important; }
   .sh-table thead th { background: #f5f5f5 !important; color: #000 !important; }
   .sh-stat-card, .sh-avatar { break-inside: avoid; }
 }
