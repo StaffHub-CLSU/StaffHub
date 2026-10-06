@@ -20,3 +20,18 @@ body{font-family:"Instrument Sans",sans-serif}.sh-content{min-height:100vh}.tabl
     transition:opacity .3s var(--sh-ease);
   }
 }
+
+/* Mobile: full-width controls and larger tap targets for forms. */
+@media (max-width:575.98px){
+  .form-control,
+  .form-select,
+  .sh-auth-card .form-control,
+  .sh-login-input-group .form-control{
+    min-height:46px;
+    padding-top:13px;
+    padding-bottom:13px;
+    font-size:16px;
+  }
+  .btn:not(.btn-sm){padding-top:13px;padding-bottom:13px}
+  .sh-form-submit{width:100%}
+}
