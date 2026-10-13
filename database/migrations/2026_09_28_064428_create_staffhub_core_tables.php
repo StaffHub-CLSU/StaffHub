@@ -71,7 +71,7 @@ return new class extends Migration
             $table->unsignedBigInteger('processed_by')->nullable();
             $table->timestamp('processed_date')->useCurrent();
             $table->foreign('processed_by')->references('user_id')->on('users')->nullOnDelete();
-            $table->unique(['employee_id', 'payroll_period_start', 'payroll_period_end']);
+            $table->unique(['employee_id', 'payroll_period_start', 'payroll_period_end'], 'payroll_emp_period_unique');
         });
         Schema::create('activity_logs', function (Blueprint $table): void {
             $table->id('log_id');
