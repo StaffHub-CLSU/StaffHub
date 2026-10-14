@@ -17,7 +17,7 @@ class AttendanceController extends Controller
     {
         $this->authorize('viewAny', Attendance::class);
 
-        return Inertia::render('Admin/Attendance', ['attendance' => Attendance::with('employee.department')->latest('attendance_date')->paginate(15)->withQueryString(), 'employees' => Employee::active()->orderBy('last_name')->get()]);
+        return Inertia::render('Admin/Attendance', ['attendance' => Attendance::with('employee.department')->latest('attendance_date')->paginate($request->integer('per_page', 15))->withQueryString(), 'employees' => Employee::active()->orderBy('last_name')->get()]);
     }
 
     public function store(AttendanceRequest $request): RedirectResponse

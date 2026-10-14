@@ -20,7 +20,7 @@ class EmployeeController extends Controller
         $this->authorize('viewAny', Employee::class);
 
         return Inertia::render('Admin/Employees', [
-            'employees' => Employee::with(['department', 'position', 'user'])->when($request->string('search')->toString(), fn ($query, $search) => $query->where(fn ($employeeQuery) => $employeeQuery->where('first_name', 'like', "%{$search}%")->orWhere('last_name', 'like', "%{$search}%")->orWhere('employee_code', 'like', "%{$search}%")))->latest('employee_id')->paginate(10)->withQueryString(),
+            'employees' => Employee::with(['department', 'position', 'user'])->when($request->string('search')->toString(), fn ($query, $search) => $query->where(fn ($employeeQuery) => $employeeQuery->where('first_name', 'like', "%{$search}%")->orWhere('last_name', 'like', "%{$search}%")->orWhere('employee_code', 'like', "%{$search}%")))->latest('employee_id')->paginate($request->integer('per_page', 10))->withQueryString(),
             'departments' => Department::orderBy('department_name')->get(),
             'positions' => Position::with('department')->orderBy('position_name')->get(),
         ]);

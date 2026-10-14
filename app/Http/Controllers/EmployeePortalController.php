@@ -28,7 +28,7 @@ class EmployeePortalController extends Controller
     {
         $employee = $this->employee($request);
 
-        return Inertia::render('Employee/Attendance', ['attendance' => Attendance::whereBelongsTo($employee)->latest('attendance_date')->paginate(12)]);
+        return Inertia::render('Employee/Attendance', ['attendance' => Attendance::whereBelongsTo($employee)->latest('attendance_date')->paginate($request->integer('per_page', 12))->withQueryString()]);
     }
 
     public function clock(Request $request, string $action, AttendanceService $service): RedirectResponse
@@ -43,7 +43,7 @@ class EmployeePortalController extends Controller
     {
         $employee = $this->employee($request);
 
-        return Inertia::render('Employee/Payroll', ['payrolls' => Payroll::whereBelongsTo($employee)->latest('payroll_period_start')->paginate(24)]);
+        return Inertia::render('Employee/Payroll', ['payrolls' => Payroll::whereBelongsTo($employee)->latest('payroll_period_start')->paginate($request->integer('per_page', 24))->withQueryString()]);
     }
 
     public function profile(Request $request): Response

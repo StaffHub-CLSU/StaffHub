@@ -128,7 +128,109 @@ function Table({rows,columns,actions}) {
   </table>
  </div>;
 }
-function Pagination({data}) { return data?.links&&<nav><ul className="pagination">{data.links.map((link,index)=><li key={index} className={'page-item '+(link.active?'active ':'')+(link.url?'':'disabled')}><button className="page-link" disabled={!link.url} onClick={()=>link.url&&router.get(link.url)} dangerouslySetInnerHTML={{__html:link.label}}/></li>)}</ul></nav>; }
+function Pagination({data}) {
+  if (!data || (!data.links && !data.total)) return null;
+
+  const total = Number(data.total || 0);
+  const from = total > 0 ? (data.from || 1) : 0;
+  const to = total > 0 ? (data.to || total) : 0;
+  const perPage = String(data.per_page || 10);
+  const links = data.links || [];
+
+  const prevLink = links[0];
+  const nextLink = links[links.length - 1];
+  const pageLinks = links.length > 2 ? links.slice(1, -1) : [];
+
+  const handlePerPageChange = (e) => {
+    const newPerPage = e.target.value;
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', newPerPage);
+    url.searchParams.set('page', '1');
+    router.get(url.pathname + url.search, {}, { preserveState: true, preserveScroll: true });
+  };
+
+  const cleanLabel = (label) => {
+    return String(label)
+      .replace(/&laquo;\s*/gi, '')
+      .replace(/\s*&raquo;/gi, '')
+      .replace(/Previous/gi, '')
+      .replace(/Next/gi, '')
+      .trim();
+  };
+
+  return (
+    <div className="sh-pagination-bar" role="navigation" aria-label="Pagination">
+      <div className="sh-pagination-left">
+        <span className="sh-pagination-info">
+          Showing <span className="sh-pagination-num">{from}</span> to <span className="sh-pagination-num">{to}</span> of <span className="sh-pagination-num">{total}</span> results
+        </span>
+        <div className="sh-pagination-per-page">
+          <label htmlFor="sh-per-page-select" className="sh-per-page-label">Show:</label>
+          <select
+            id="sh-per-page-select"
+            className="form-select form-select-sm sh-per-page-select"
+            value={perPage}
+            onChange={handlePerPageChange}
+            aria-label="Items per page"
+          >
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="sh-pagination-right">
+        <button
+          type="button"
+          className="sh-page-btn sh-page-prev"
+          disabled={!prevLink?.url}
+          onClick={() => prevLink?.url && router.get(prevLink.url, {}, { preserveScroll: true })}
+          aria-label="Previous page"
+        >
+          Previous
+        </button>
+
+        <div className="sh-page-numbers">
+          {pageLinks.map((link, index) => {
+            const isDots = link.label === '...';
+            if (isDots) {
+              return (
+                <span key={index} className="sh-page-ellipsis">
+                  …
+                </span>
+              );
+            }
+            return (
+              <button
+                key={index}
+                type="button"
+                className={`sh-page-num ${link.active ? 'active' : ''}`}
+                disabled={!link.url || link.active}
+                onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                aria-current={link.active ? 'page' : undefined}
+              >
+                {cleanLabel(link.label)}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          className="sh-page-btn sh-page-next"
+          disabled={!nextLink?.url}
+          onClick={() => nextLink?.url && router.get(nextLink.url, {}, { preserveScroll: true })}
+          aria-label="Next page"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
 const displayDate=(value,options={month:'short',day:'numeric',year:'numeric'})=>value?new Intl.DateTimeFormat('en-PH',options).format(new Date(value)): '—';
 const displayTime=(value)=>value?new Intl.DateTimeFormat('en-PH',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Manila'}).format(new Date(value)):'—';
 const peso=(value)=>new Intl.NumberFormat('en-PH',{style:'currency',currency:'PHP'}).format(Number(value||0));
@@ -142,8 +244,520 @@ function StatusBadge({status}) { const classes={verified:'verified',completed:'c
 function AdminDashboard(props) { const stats=props.stats||{}; return <Shell title="Dashboard"><div className="sh-page-head"><div><div className="sh-eyebrow"><span className="sh-eyebrow-dot"/><span>Admin console</span><span className="sh-eyebrow-sep">/</span><span className="sh-mono">{displayDate(new Date(),{weekday:'long',month:'short',day:'numeric',year:'numeric'})}</span></div><h1 className="sh-display mb-0">Dashboard</h1><p className="sh-muted small mb-0 mt-1">Today’s workforce at a glance — attendance, payroll, and activity.</p></div></div><div className="row g-3 mb-4"><div className="col-6 col-md-4 col-xxl-2"><StatCard icon="bi-people-fill" value={stats.total_employees||0} label="Total employees" caption="Active workforce"/></div><div className="col-6 col-md-4 col-xxl-2"><StatCard icon="bi-person-check-fill" value={stats.present_today||0} label="Present today" caption="Clocked in today"/></div><div className="col-6 col-md-4 col-xxl-2"><StatCard icon="bi-person-x-fill" value={stats.absent_today||0} label="Absent today" caption="Not clocked in"/></div><div className="col-6 col-md-4 col-xxl-2"><StatCard icon="bi-clock-history" value={stats.total_attendance_records||0} label="Attendance records" caption="All-time total"/></div><div className="col-6 col-md-4 col-xxl-2"><StatCard icon="bi-cash-stack" value={stats.payrolls_processed||0} label="Payrolls processed" caption="All-time total"/></div><div className="col-6 col-md-4 col-xxl-2"><StatCard icon="bi-building" value={stats.total_departments||0} label="Departments" caption="Org. structure"/></div></div><div className="row g-3 mb-4"><div className="col-lg-5"><BarPanel title="Daily attendance (last 7 days)" series={props.attendanceSeries||[]}/></div><div className="col-lg-4"><BarPanel title="Monthly payroll expenses" series={props.payrollSeries||[]} format="currency"/></div><div className="col-lg-3"><DonutPanel series={props.departmentSeries||[]}/></div></div><div className="row g-3"><div className="col-lg-4"><div className="sh-card h-100 p-0"><div className="sh-card-header-flat d-flex justify-content-between align-items-center"><h2 className="sh-section-title mb-0">Recent clock-ins</h2><i className="bi bi-box-arrow-in-right text-success" aria-hidden="true"/></div><div className="p-3">{props.recentClockIns?.length?props.recentClockIns.map(record=><PersonRow key={record.attendance_id} record={record} timeField="time_in"/>):<EmptyPanel>No clock-ins yet today.</EmptyPanel>}</div></div></div><div className="col-lg-4"><div className="sh-card h-100 p-0"><div className="sh-card-header-flat d-flex justify-content-between align-items-center"><h2 className="sh-section-title mb-0">Recent clock-outs</h2><i className="bi bi-box-arrow-right text-danger" aria-hidden="true"/></div><div className="p-3">{props.recentClockOuts?.length?props.recentClockOuts.map(record=><PersonRow key={record.attendance_id} record={record} timeField="time_out"/>):<EmptyPanel>No clock-outs yet today.</EmptyPanel>}</div></div></div><div className="col-lg-4"><div className="sh-card h-100 p-0"><div className="sh-card-header-flat d-flex justify-content-between align-items-center"><h2 className="sh-section-title mb-0">Recent activity</h2><i className="bi bi-list-check sh-muted" aria-hidden="true"/></div><div className="p-3">{props.activities?.length?props.activities.map(activity=><div className="sh-activity-row" key={activity.log_id}><i className="bi bi-dot" aria-hidden="true"/><div><strong>System</strong> {activity.activity}<time>{displayDate(activity.timestamp,{month:'short',day:'numeric'})} · {displayTime(activity.timestamp)}</time></div></div>):<EmptyPanel>No recent activity.</EmptyPanel>}</div></div></div></div></Shell>; }
 function EmployeeDashboard({employee,today,history,lastPayroll}) { const [clock,setClock]=useState(''); const [processing,setProcessing]=useState(false); useEffect(()=>{const update=()=>setClock(new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date())); update(); const timer=window.setInterval(update,1000); return()=>window.clearInterval(timer);},[]); const clockedIn=Boolean(today?.time_in&&!today?.time_out); const completed=Boolean(today?.time_out); const verifiedHours=(history||[]).filter(item=>item.status==='Verified').reduce((sum,item)=>sum+Number(item.total_hours||0),0); const submit=(action)=>router.post(appUrl(`/employee/attendance/${action}`),{}, {onStart:()=>setProcessing(true),onFinish:()=>setProcessing(false)}); return <Shell title="My dashboard"><div className="sh-page-head"><div><div className="sh-eyebrow"><span className="sh-eyebrow-dot"/><span>Employee portal</span><span className="sh-eyebrow-sep">/</span><span className="sh-mono">{displayDate(new Date(),{weekday:'long',month:'short',day:'numeric',year:'numeric'})}</span></div><h1 className="sh-display mb-1">Welcome back, {employee.first_name}!</h1><p className="sh-muted mb-0">Here’s your attendance and payroll snapshot for today.</p></div></div><div className="row g-3 mb-4"><div className="col-lg-5"><section className="sh-punch-card h-100"><div className="d-flex justify-content-between align-items-start mb-3"><div><div className="sh-punch-date">{displayDate(new Date(),{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div><time className="sh-punch-clock">{clock}</time></div><i className="bi bi-clock-fill fs-2" style={{color:'var(--sh-primary-alt)',opacity:.8}} aria-hidden="true"/></div><div className="mb-3">{clockedIn?<span className="sh-badge sh-badge-completed">Clocked in at {displayTime(today.time_in)}</span>:completed?<span className="sh-badge sh-badge-verified">Completed — {Number(today.total_hours||0).toFixed(2)}h worked</span>:<span className="sh-badge sh-badge-inactive">Not clocked in</span>}</div><div className="d-flex gap-2"><button className="btn-clock btn-clock-in flex-fill" disabled={processing||Boolean(today?.time_in)} onClick={()=>submit('in')}><i className="bi bi-box-arrow-in-right" aria-hidden="true"/> Clock in</button><button className="btn-clock btn-clock-out flex-fill" disabled={processing||!clockedIn} onClick={()=>submit('out')}><i className="bi bi-box-arrow-right" aria-hidden="true"/> Clock out</button></div></section></div><div className="col-lg-7"><div className="row g-3 h-100"><div className="col-md-6"><StatCard icon="bi-calendar-check" value={`${verifiedHours.toFixed(2)}h`} label="Verified hours this month"/></div><div className="col-md-6"><StatCard icon="bi-cash-stack" value={lastPayroll?peso(lastPayroll.net_salary):'—'} label="Last net salary"/></div><div className="col-12"><section className="sh-card h-100"><h2 className="sh-section-title mb-3">Profile summary</h2><div className="row small">{[['Employee code',employee.employee_code,true],['Department',employee.department?.department_name],['Position',employee.position?.position_name],['Employment status',employee.employment_status],['Hourly rate',peso(employee.basic_hourly_rate),true],['Date hired',displayDate(employee.date_hired),true]].map(([label,value,mono])=><div className="col-6 mb-3" key={label}><span className="sh-muted d-block">{label}</span><strong className={mono?'sh-mono':''}>{value||'—'}</strong></div>)}</div></section></div></div></div></div><section className="sh-card p-0"><div className="sh-card-header-flat"><h2 className="sh-section-title mb-0">Recent attendance</h2></div><div className="table-responsive"><table className="table sh-table mb-0"><thead><tr><th>Date</th><th>Time in</th><th>Time out</th><th>Total hours</th><th>Status</th></tr></thead><tbody>{history?.length?history.map(record=><tr key={record.attendance_id}><td className="sh-mono">{displayDate(record.attendance_date)}</td><td className="sh-mono">{displayTime(record.time_in)}</td><td className="sh-mono">{displayTime(record.time_out)}</td><td className="sh-mono">{record.total_hours?`${Number(record.total_hours).toFixed(2)}h`:'—'}</td><td><StatusBadge status={record.status}/></td></tr>):<tr><td colSpan="5" className="text-center py-4 sh-muted">No attendance records yet. Clock in to get started!</td></tr>}</tbody></table></div></section></Shell>; }
 export function Dashboard(props) { return props.employee?<EmployeeDashboard {...props}/>:<AdminDashboard {...props}/>; }
-export function Employees({employees,departments,positions}) { const page=usePage(); const can=page.props.auth.user.permissions.includes('employees.manage'); const [show,setShow]=useState(false); const [d,setD]=useState({employee_code:'',username:'',first_name:'',last_name:'',email:'',password:'',password_confirmation:'',department_id:'',position_id:'',gender:'Other',birthdate:'',contact_number:'',employment_status:'Full-Time',basic_hourly_rate:'0',date_hired:new Date().toISOString().slice(0,10)}); const set=(key)=>(e)=>setD({...d,[key]:e.target.value}); return <Shell title="Employees"><div className="sh-page-toolbar"><h1 className="h3">Employees</h1>{can&&<button className="btn btn-primary" onClick={()=>setShow(!show)}>Add employee</button>}</div>{show&&<form className="card card-body row g-2 mb-4" onSubmit={e=>{e.preventDefault();router.post('/admin/employees',d,{onSuccess:()=>setShow(false)});}}>{[['employee_code','Employee code','e.g. EMP-0001'],['username','Username','e.g. juan.delacruz'],['first_name','First name','e.g. Juan'],['last_name','Last name','e.g. Dela Cruz'],['email','Email','name@example.com'],['password','Password','At least 8 characters'],['password_confirmation','Confirm password','Re-enter your password'],['birthdate','Birthdate'],['contact_number','Contact number','e.g. 0917 123 4567'],['basic_hourly_rate','Hourly rate','e.g. 75.00'],['date_hired','Date hired']].map(([key,label,placeholder])=><div className="col-md-4" key={key}><Field label={label} type={key.includes('password')?'password':key.includes('date')?'date':key==='email'?'email':key==='basic_hourly_rate'?'number':'text'} placeholder={placeholder} value={d[key]} onChange={set(key)} error={page.props.errors[key]} required/></div>)}<div className="col-md-4"><Select label="Department" placeholder="— Select department —" value={d.department_id} onChange={set('department_id')} error={page.props.errors.department_id}>{departments.map(x=><option key={x.department_id} value={x.department_id}>{x.department_name}</option>)}</Select></div><div className="col-md-4"><Select label="Position" placeholder="— Select position —" value={d.position_id} onChange={set('position_id')} error={page.props.errors.position_id}>{positions.map(x=><option key={x.position_id} value={x.position_id}>{x.position_name}</option>)}</Select></div><div className="col-md-4"><Select label="Gender" value={d.gender} onChange={set('gender')} error={page.props.errors.gender}><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></Select></div><div className="col-md-4"><Select label="Employment status" value={d.employment_status} onChange={set('employment_status')} error={page.props.errors.employment_status}><option value="Full-Time">Full-Time</option><option value="Part-Time">Part-Time</option><option value="Contractual">Contractual</option></Select></div><div className="col-12"><button type="submit" className="btn btn-primary sh-form-submit">Save employee</button></div></form>}<Table rows={employees.data} columns={[['Code','employee_code'],['Employee','full_name'],['Department',r=>r.department?.department_name],['Position',r=>r.position?.position_name],['Status',r=>r.is_active?'Active':'Archived']]} actions={can?r=><button className="btn btn-sm btn-outline-danger" disabled={!r.is_active} onClick={()=>confirm('Archive employee?')&&router.delete('/admin/employees/'+r.employee_id)}>Archive</button>:null}/><Pagination data={employees}/></Shell>; }
-export function Organization({departments,positions}) { const page=usePage(); const can=page.props.auth.user.permissions.includes('organization.manage'); const errors=page.props.errors||{}; const [name,setName]=useState(''); const [position,setPosition]=useState(''); return <Shell title="Organization"><h1 className="h3">Departments & positions</h1>{can&&<div className="row mb-4"><form className="col-md-6 mb-3" onSubmit={e=>{e.preventDefault();router.post('/admin/departments',{department_name:name});}}><Field label="Department name" placeholder="e.g. Human Resources" value={name} onChange={e=>setName(e.target.value)} error={errors.department_name} required/><button type="submit" className="btn btn-primary sh-form-submit">Add department</button></form><form className="col-md-6 mb-3" onSubmit={e=>{e.preventDefault();router.post('/admin/positions',{position_name:position});}}><Field label="Position name" placeholder="e.g. Accountant" value={position} onChange={e=>setPosition(e.target.value)} error={errors.position_name} required/><button type="submit" className="btn btn-primary sh-form-submit">Add position</button></form></div>}<div className="row"><div className="col-md-6"><Table rows={departments} columns={[['Department','department_name'],['Description','description']]} actions={can?r=><button className="btn btn-sm btn-outline-danger" onClick={()=>router.delete('/admin/departments/'+r.department_id)}>Delete</button>:null}/></div><div className="col-md-6"><Table rows={positions} columns={[['Position','position_name'],['Department',r=>r.department?.department_name]]} actions={can?r=><button className="btn btn-sm btn-outline-danger" onClick={()=>router.delete('/admin/positions/'+r.position_id)}>Delete</button>:null}/></div></div></Shell>; }
+export function Employees({employees,departments,positions}) {
+  const page = usePage();
+  const can = page.props.auth.user.permissions.includes('employees.manage');
+  const [show, setShow] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const initialData = {
+    employee_code: '',
+    username: '',
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    department_id: '',
+    position_id: '',
+    gender: 'Other',
+    birthdate: '',
+    contact_number: '',
+    employment_status: 'Full-Time',
+    basic_hourly_rate: '0',
+    date_hired: new Date().toISOString().slice(0, 10),
+  };
+  const [d, setD] = useState(initialData);
+  const set = (key) => (e) => setD({...d, [key]: e.target.value});
+
+  const resetForm = () => setD(initialData);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setShow(false);
+    };
+    if (show) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [show]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    router.post(appUrl('/admin/employees'), d, {
+      onStart: () => setProcessing(true),
+      onFinish: () => setProcessing(false),
+      onSuccess: () => {
+        setShow(false);
+        resetForm();
+      },
+    });
+  };
+
+  return (
+    <Shell title="Employees">
+      <div className="sh-page-toolbar">
+        <div>
+          <h1 className="h3 mb-0">Employees</h1>
+          <p className="sh-muted small mb-0 mt-1">Manage personnel records, departments, and credentials.</p>
+        </div>
+        {can && (
+          <button
+            type="button"
+            className="btn btn-primary d-inline-flex align-items-center gap-2"
+            onClick={() => setShow(true)}
+          >
+            <i className="bi bi-person-plus-fill" aria-hidden="true" />
+            <span>Add employee</span>
+          </button>
+        )}
+      </div>
+
+      {show && (
+        <div
+          className="sh-modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !processing) setShow(false);
+          }}
+        >
+          <div className="sh-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="add-employee-title">
+            <div className="sh-modal-header">
+              <div>
+                <h2 id="add-employee-title" className="sh-modal-title">Add New Employee</h2>
+                <p className="sh-modal-subtitle">Create user credentials and workforce profile</p>
+              </div>
+              <button
+                type="button"
+                className="sh-modal-close"
+                aria-label="Close dialog"
+                onClick={() => !processing && setShow(false)}
+              >
+                <i className="bi bi-x-lg" aria-hidden="true" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="sh-modal-body">
+                {/* Account Credentials */}
+                <div className="sh-modal-section-title">
+                  <i className="bi bi-shield-lock" aria-hidden="true" />
+                  <span>Account Credentials</span>
+                </div>
+                <div className="row g-2 mb-3">
+                  <div className="col-md-6">
+                    <Field
+                      label="Username"
+                      placeholder="e.g. juan.delacruz"
+                      value={d.username}
+                      onChange={set('username')}
+                      error={page.props.errors.username}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <Field
+                      label="Email"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={d.email}
+                      onChange={set('email')}
+                      error={page.props.errors.email}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <Field
+                      label="Password"
+                      type="password"
+                      placeholder="At least 8 characters"
+                      value={d.password}
+                      onChange={set('password')}
+                      error={page.props.errors.password}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <Field
+                      label="Confirm password"
+                      type="password"
+                      placeholder="Re-enter your password"
+                      value={d.password_confirmation}
+                      onChange={set('password_confirmation')}
+                      error={page.props.errors.password_confirmation}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Personal Information */}
+                <div className="sh-modal-section-title">
+                  <i className="bi bi-person" aria-hidden="true" />
+                  <span>Personal Information</span>
+                </div>
+                <div className="row g-2 mb-3">
+                  <div className="col-md-6">
+                    <Field
+                      label="First name"
+                      placeholder="e.g. Juan"
+                      value={d.first_name}
+                      onChange={set('first_name')}
+                      error={page.props.errors.first_name}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <Field
+                      label="Last name"
+                      placeholder="e.g. Dela Cruz"
+                      value={d.last_name}
+                      onChange={set('last_name')}
+                      error={page.props.errors.last_name}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <Select
+                      label="Gender"
+                      value={d.gender}
+                      onChange={set('gender')}
+                      error={page.props.errors.gender}
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </Select>
+                  </div>
+                  <div className="col-md-4">
+                    <Field
+                      label="Birthdate"
+                      type="date"
+                      value={d.birthdate}
+                      onChange={set('birthdate')}
+                      error={page.props.errors.birthdate}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <Field
+                      label="Contact number"
+                      type="tel"
+                      placeholder="e.g. 0917 123 4567"
+                      value={d.contact_number}
+                      onChange={set('contact_number')}
+                      error={page.props.errors.contact_number}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Employment Details */}
+                <div className="sh-modal-section-title">
+                  <i className="bi bi-briefcase" aria-hidden="true" />
+                  <span>Employment Details</span>
+                </div>
+                <div className="row g-2">
+                  <div className="col-md-4">
+                    <Field
+                      label="Employee code"
+                      placeholder="e.g. EMP-0001"
+                      value={d.employee_code}
+                      onChange={set('employee_code')}
+                      error={page.props.errors.employee_code}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <Select
+                      label="Department"
+                      placeholder="— Select department —"
+                      value={d.department_id}
+                      onChange={set('department_id')}
+                      error={page.props.errors.department_id}
+                      required
+                    >
+                      {departments.map((x) => (
+                        <option key={x.department_id} value={x.department_id}>
+                          {x.department_name}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div className="col-md-4">
+                    <Select
+                      label="Position"
+                      placeholder="— Select position —"
+                      value={d.position_id}
+                      onChange={set('position_id')}
+                      error={page.props.errors.position_id}
+                      required
+                    >
+                      {positions.map((x) => (
+                        <option key={x.position_id} value={x.position_id}>
+                          {x.position_name}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div className="col-md-4">
+                    <Select
+                      label="Employment status"
+                      value={d.employment_status}
+                      onChange={set('employment_status')}
+                      error={page.props.errors.employment_status}
+                    >
+                      <option value="Full-Time">Full-Time</option>
+                      <option value="Part-Time">Part-Time</option>
+                      <option value="Contractual">Contractual</option>
+                    </Select>
+                  </div>
+                  <div className="col-md-4">
+                    <Field
+                      label="Hourly rate"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="e.g. 75.00"
+                      value={d.basic_hourly_rate}
+                      onChange={set('basic_hourly_rate')}
+                      error={page.props.errors.basic_hourly_rate}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <Field
+                      label="Date hired"
+                      type="date"
+                      value={d.date_hired}
+                      onChange={set('date_hired')}
+                      error={page.props.errors.date_hired}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="sh-modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => setShow(false)}
+                  disabled={processing}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary d-inline-flex align-items-center gap-2"
+                  disabled={processing}
+                >
+                  {processing ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                      <span>Saving…</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-person-plus-fill" aria-hidden="true" />
+                      <span>Save employee</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <Table
+        rows={employees.data}
+        columns={[
+          ['Code', 'employee_code'],
+          ['Employee', 'full_name'],
+          ['Department', (r) => r.department?.department_name],
+          ['Position', (r) => r.position?.position_name],
+          ['Status', (r) => (r.is_active ? 'Active' : 'Archived')],
+        ]}
+        actions={
+          can
+            ? (r) => (
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  disabled={!r.is_active}
+                  onClick={() =>
+                    confirm('Archive employee?') && router.delete(appUrl('/admin/employees/' + r.employee_id))
+                  }
+                >
+                  Archive
+                </button>
+              )
+            : null
+        }
+      />
+      <Pagination data={employees} />
+    </Shell>
+  );
+}
+export function Organization({departments,positions}) {
+  const page = usePage();
+  const can = page.props.auth.user.permissions.includes('organization.manage');
+  const errors = page.props.errors || {};
+  const [name, setName] = useState('');
+  const [position, setPosition] = useState('');
+  const [deptProcessing, setDeptProcessing] = useState(false);
+  const [posProcessing, setPosProcessing] = useState(false);
+
+  const handleAddDept = (e) => {
+    e.preventDefault();
+    router.post(appUrl('/admin/departments'), {department_name: name}, {
+      onStart: () => setDeptProcessing(true),
+      onFinish: () => setDeptProcessing(false),
+      onSuccess: () => setName(''),
+    });
+  };
+
+  const handleAddPos = (e) => {
+    e.preventDefault();
+    router.post(appUrl('/admin/positions'), {position_name: position}, {
+      onStart: () => setPosProcessing(true),
+      onFinish: () => setPosProcessing(false),
+      onSuccess: () => setPosition(''),
+    });
+  };
+
+  return (
+    <Shell title="Organization">
+      <div className="sh-page-toolbar mb-4">
+        <div>
+          <h1 className="h3 mb-0">Departments & positions</h1>
+          <p className="sh-muted small mb-0 mt-1">Configure company divisions and organizational hierarchy.</p>
+        </div>
+      </div>
+
+      {can && (
+        <div className="row g-4 mb-4">
+          <div className="col-md-6">
+            <div className="sh-card h-100">
+              <h2 className="sh-section-title mb-3 d-flex align-items-center gap-2">
+                <i className="bi bi-building text-primary" aria-hidden="true" />
+                <span>Add Department</span>
+              </h2>
+              <form onSubmit={handleAddDept}>
+                <Field
+                  label="Department name"
+                  placeholder="e.g. Human Resources"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  error={errors.department_name}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="btn btn-primary d-inline-flex align-items-center gap-2"
+                  disabled={deptProcessing}
+                >
+                  <i className="bi bi-plus-lg" aria-hidden="true" />
+                  <span>{deptProcessing ? 'Adding…' : 'Add department'}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div className="col-md-6">
+            <div className="sh-card h-100">
+              <h2 className="sh-section-title mb-3 d-flex align-items-center gap-2">
+                <i className="bi bi-briefcase text-primary" aria-hidden="true" />
+                <span>Add Position</span>
+              </h2>
+              <form onSubmit={handleAddPos}>
+                <Field
+                  label="Position name"
+                  placeholder="e.g. Senior Accountant"
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                  error={errors.position_name}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="btn btn-primary d-inline-flex align-items-center gap-2"
+                  disabled={posProcessing}
+                >
+                  <i className="bi bi-plus-lg" aria-hidden="true" />
+                  <span>{posProcessing ? 'Adding…' : 'Add position'}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="row g-4">
+        <div className="col-md-6">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <h2 className="sh-section-title mb-0">Departments</h2>
+            <span className="badge bg-light text-dark border">{departments?.length || 0} total</span>
+          </div>
+          <Table
+            rows={departments}
+            columns={[
+              ['Department', 'department_name'],
+              ['Description', (r) => r.description || '—'],
+            ]}
+            actions={
+              can
+                ? (r) => (
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() =>
+                        confirm(`Delete department "${r.department_name}"?`) &&
+                        router.delete(appUrl('/admin/departments/' + r.department_id))
+                      }
+                    >
+                      <i className="bi bi-trash3" aria-hidden="true" />
+                      <span>Delete</span>
+                    </button>
+                  )
+                : null
+            }
+          />
+        </div>
+
+        <div className="col-md-6">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <h2 className="sh-section-title mb-0">Positions</h2>
+            <span className="badge bg-light text-dark border">{positions?.length || 0} total</span>
+          </div>
+          <Table
+            rows={positions}
+            columns={[
+              ['Position', 'position_name'],
+              ['Department', (r) => r.department?.department_name || 'Unassigned'],
+            ]}
+            actions={
+              can
+                ? (r) => (
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() =>
+                        confirm(`Delete position "${r.position_name}"?`) &&
+                        router.delete(appUrl('/admin/positions/' + r.position_id))
+                      }
+                    >
+                      <i className="bi bi-trash3" aria-hidden="true" />
+                      <span>Delete</span>
+                    </button>
+                  )
+                : null
+            }
+          />
+        </div>
+      </div>
+    </Shell>
+  );
+}
 export function Attendance({attendance,employees}) {
     const page = usePage();
     const admin = page.props.auth.user.permissions.includes('attendance.manage');

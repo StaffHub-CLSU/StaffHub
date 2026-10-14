@@ -17,7 +17,7 @@ class PayrollController extends Controller
     {
         $this->authorize('viewAny', Payroll::class);
 
-        return Inertia::render('Admin/Payroll', ['employees' => Employee::active()->with('department')->orderBy('last_name')->get(), 'payrolls' => Payroll::with('employee.department')->latest('processed_date')->paginate(15)]);
+        return Inertia::render('Admin/Payroll', ['employees' => Employee::active()->with('department')->orderBy('last_name')->get(), 'payrolls' => Payroll::with('employee.department')->latest('processed_date')->paginate($request->integer('per_page', 15))->withQueryString()]);
     }
 
     public function store(PayrollRequest $request, PayrollService $service): RedirectResponse
